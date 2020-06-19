@@ -1,0 +1,57 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    font-family: Impact, sans-serif;
+    font-size: 19px;
+  
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+
+.gameDOM {
+
+    justify-content: center;
+    display: flex;
+    margin-top: 40px;
+    min-height: 100vw;
+}
+
+.playing-grid {
+    display: grid;
+    
+    grid-template-columns: repeat(10, 25px);
+    grid-template-rows: repeat(20, 25px);
+    
+}
+
+.display {
+    margin-left: 25px;
+}
+
+.preview-grid {
+    display: grid;
+    
+    grid-template-columns: repeat(5, 25px);
+    grid-template-rows: repeat(5, 25px);
+    
+}
+.score {   
+    margin-top: 5px;
+}
+
+.level {
+    margin-top: 5px;
+}   
+.box {
+    
+    width: 25px;
+    height: 25px;
+    border-radius: 10;
+    background-color: #747272;
+    border: 1px solid #403f3f;
+   
+}
+
