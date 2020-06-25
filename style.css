@@ -8,6 +8,7 @@
 body {
     padding: 0;
     margin: 0;
+    overflow: hidden;
 }
 
 
@@ -15,13 +16,11 @@ body {
 
     justify-content: center;
     display: flex;
-    margin-top: 40px;
-    min-height: 100vw;
+    margin-top: 10vh;
 }
 
 .playing-grid {
     display: grid;
-    
     grid-template-columns: repeat(10, 25px);
     grid-template-rows: repeat(20, 25px);
     
@@ -33,7 +32,6 @@ body {
 
 .preview-grid {
     display: grid;
-    
     grid-template-columns: repeat(5, 25px);
     grid-template-rows: repeat(5, 25px);
     
