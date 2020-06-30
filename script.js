@@ -1,6 +1,3 @@
-
-
-// create playing grid, preview grid and score/ level
 const gridMapping = {
     playingGrid: 200,
     previewGrid: 25
@@ -74,7 +71,7 @@ function generateStartingState() {
         level: [],
         tetrimono: {
             blocks: createStartingShape(),
-            posX: 0,
+            posX: 3,
             posY: 0
         }
     };
@@ -96,30 +93,23 @@ state = generateStartingState();
 let startingState = {}
 
 function startTetris() {
-    startingState = {
-        level: state.level,
-        tetrimono: {
-            blocks: state.tetrimono.blocks,
-            posX: 3,
-            posY: 0
-        }
-    };
+    startingState = generateStartingState();
 
     let combined = getCombined(startingState);
     displayBlock(combined);
 
 }
 
+
+let combined;
+
 function getCombined(updatedState) {
     
-    let combined = [];
-    //console.log(startingState.tetrimono.blocks)
+    combined = [];
     let posX = updatedState.tetrimono.posX;
     let posY = updatedState.tetrimono.posY;
     let block = updatedState.tetrimono.blocks;
     let blockIndex = 0;
-
-    console.log(startingState.tetrimono.posX, startingState.tetrimono.posY);
 
     for (let el of updatedState.level) {
         
@@ -138,23 +128,25 @@ function getCombined(updatedState) {
             posY++
 
         }
+        
+        
     }
 
-    //console.log(combined);
+    
     return combined;
 
 }
 
 function displayBlock(blockView) {
    
-    let merged = [].concat.apply([], blockView)
-    //console.log(merged);
-    for(let i = 0; i <= merged.length; i++){
-        if(merged[i] == 1){
+    let mergedDynamic = [].concat.apply([], blockView);
+    let mergedStatic = [].concat.apply([], state.level)
+ 
+    for(let i = 0; i <= gridBoxes.length; i++){
+        if(mergedDynamic[i] == 1 || mergedStatic[i] == 1){
             gridBoxes[i].style.backgroundColor = '#ff3333';
         }
-    }
-    
+    }   
 }
 
 
@@ -183,18 +175,20 @@ function clearPlayingField() {
 
 
 
-function moveBlock(event) {
-    clearPlayingField();
-    let arrowPress = event.which || event.keyCode;
-    let block = startingState.tetrimono.blocks;
-    combined = getCombined(startingState);
-    let leftEdge = false;
-    let rightEdge= false;
-    let bottomEdge = false;
 
-    console.log(startingState.tetrimono.posX, startingState.tetrimono.posY)
+function moveBlock(event) {
+
+    clearPlayingField();
+    combined = getCombined(startingState);
+
+    let finalRow = state.level.length - 1;
+    let arrowPress = event.which || event.keyCode;
+
+    let leftEdge = false; let rightEdge = false; let bottomEdge = false; 
+    let touchDown = false;
+
     switch(arrowPress){
-        // LEFT ARROW KEY
+       
         case 37: 
             startingState = {
                 level: startingState.level,
@@ -204,20 +198,23 @@ function moveBlock(event) {
                     posY: startingState.tetrimono.posY
                 }
             };
-              
-            console.log(combined)
-            for(let i = 0; i < combined.length; i++){
-                if(combined[i][0] == 1) leftEdge = true;
+            
+            leftPress = true, rightPress = false, bottomPress = false;
+
+            for(let y = 0; y <= finalRow ; y++){
+                if(combined[y][0] == 1) leftEdge = true;
+
+                for(let x = 0; x <= state.level[y].length ; x++){
+                if(combined[y][x] == 1 && state.level[y][x - 1] == 1) leftEdge = true;
+
+                }
             }
 
             if(leftEdge == true) startingState.tetrimono.posX++;
-
             displayBlock(getCombined(startingState));
             
         break;
-
-        // RIGHT ARROW KEY
-
+        
         case 39:
             startingState = {
                 level: startingState.level,
@@ -228,9 +225,15 @@ function moveBlock(event) {
                 }
             };  
 
-            console.log(combined)
-            for(let i = 0; i < combined.length; i++){
-                if(combined[i][9] == 1) rightEdge = true;
+            leftPress = false, rightPress = true, bottomPress = false;
+
+            for(let y = 0; y <= finalRow ; y++){
+                if(combined[y][9] == 1) rightEdge = true;
+
+                for(let x = 0; x <= state.level[y].length ; x++){
+                    if(combined[y][x] == 1 && state.level[y][x + 1] == 1) rightEdge = true;
+    
+                }
             }
 
             if(rightEdge == true) startingState.tetrimono.posX--;
@@ -248,38 +251,29 @@ function moveBlock(event) {
                 }
             };           
 
-            console.log(combined)
-            for(let i = 0; i < combined.length; i++){
-                if(combined[19][i] == 1) bottomEdge = true;
+            leftPress = false, rightPress = false, bottomPress = true;
+
+            for(let x = 0; x <= finalRow ; x++){
+                if(combined[finalRow][x] == 1) bottomEdge = true;
             }
 
             if(bottomEdge == true) startingState.tetrimono.posY--;
-            
             displayBlock(getCombined(startingState));
            
         break;
         
         case 38:
+            // spin blocked if: 
+            // block on Y - 1 ; 
+            // block next to static block( onspin check if clash ) 
+            // long bar cannot spin on the border
+
             startingState = spinBlock();
-        
-            for(let i = 0; i < combined.length; i++){
-
-                if(combined[i][0] == 1) leftEdge = true;
-                if(combined[i][9] == 1) rightEdge = true;
-                if(combined[19][i] == 1) bottomEdge = true;
-
-            }
-
-            if(leftEdge == true) startingState.tetrimono.posX++;
-
-            if(rightEdge == true) startingState.tetrimono.posX--;
-            
-            if(bottomEdge == true) startingState.tetrimono.posY--;
-
             displayBlock(getCombined(startingState));
-        break;
 
+        break;
         
+        default: displayBlock(combined);
 
     }
 
@@ -288,10 +282,8 @@ function moveBlock(event) {
         let currentBlocks = startingState.tetrimono.blocks.slice();
         let spinnedBlock = [];
 
-        // empty block template
         for(let i = 0; i < currentBlocks.length; i++){
             currentBlocks[0].length == 4 ? spinnedBlock.push([0, 0, 0, 0]) : spinnedBlock.push([0, 0, 0])
-            
         }
 
 
@@ -301,8 +293,6 @@ function moveBlock(event) {
             }
         }
 
-        
-       
         startingState = {
             level: startingState.level,
             tetrimono: {
@@ -311,104 +301,59 @@ function moveBlock(event) {
                 posY: startingState.tetrimono.posY
             }
         }   
-    
-
         return startingState;
-        
     
     };
-  
+
+    for(let y = 0; y <= finalRow ; y++){
+        if(combined[finalRow][y] == 1) touchDown = true; 
+        for(let x = 0; x < state.level[y].length ; x++){
+ 
+            if(bottomPress == true){
+                if(y >= 1){
+                    if(combined[y - 1][x] == 1 && state.level[y][x] == 1){
+                        touchDown = true;
+                    }
+                }
+            }    
+        }
+     }
+ 
+     if(touchDown == true){
+        staticBlocks();
+     }
 }
 
+function staticBlocks(){
 
+    for (let y = 0; y < state.level.length; y++) {
+            for(let x = 0; x < combined[y].length; x++) {
+                if(combined[y][x] == 1) {
+                    state.level[y][x] = 1 ;
+                }
+            } 
+    }
+
+    displayBlock(state.level);
+    startTetris();
+    
+}
 
 
 // render starting UI
 renderDOMElements();
+startTetrisTimeout();
 
 // all white boxes selected
 const gridBoxes = document.getElementById('tetris').childNodes[1].childNodes
 
 //TIMEOUT STARTING POSITION
-setTimeout(() => {
-
-    startTetris();
-    window.onkeydown = moveBlock;
-
-}, 500);
-
-
-
-// MOVE ON KEYPRESS
-
-
-
-
-/// INCASE I NEED TO COMBINE STATES
-
-//     function combineState(shape) {
-//         let updatedState = {
-//             gridState: [
-//             ...shape.gridState,
-//             ...state.gridState.slice(1, state.gridState.length + 1)
-//             ] 
-//         }
-//         console.log(state)
-//         console.log(updatedState)
-
-
-//         setGridState(updatedState);
-//     }
-
-// function setGridState(updatedState) {
+function startTetrisTimeout(){
+    setTimeout(() => {
     
-
-//     console.log(state)
-//     state = {
-//         ...state,
-//         ...updatedState  
-        
-//     }
-
-//     console.log(state.gridState);
-// }
-
-
+        startTetris();
+        window.onkeydown = moveBlock;
     
+    }, 500);
 
-
-//start displaying shapes after 1 second
-
-// start clock
-
-// at each level there is a certain interval which tells you how fast the
-
-// save blocks in a container somewhere and call the blocks to randomly appear
-
-// random block apears
-
-// next block appears in the displaygrid
-
-// block starts going down
-
-
-// CHANGE COLOR OF BRICKS
-//     // gridState[4].style.backgroundColor = '#ff3333';
-//     // gridState[5].style.backgroundColor = '#ff3333';
-
-//     // gridState[14].style.backgroundColor = '#ff3333';
-//     // gridState[15].style.backgroundColor = '#ff3333';
-
-//     // for(let i = 0; i <= gridState.length; i++){
-
-//     // }
-
-
-// }
-
-/*
-    //how to select to change color
-    let selectBox = fluit.childNodes[5]
-
-    selectBox.style.backgroundColor = '#e60000'
-*/
+}
